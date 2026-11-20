@@ -221,7 +221,33 @@
   .home-text{padding:10px 20px 0; flex:none}
   .home-text h1{font-size:21px; margin:0 0 5px}
   .home-text p{font-size:14.5px; margin:0}
-  .home-actions{flex:none; margin-top:auto; gap:12px; padding:10px 16px calc(78px + env(safe-area-inset-bottom))}
+  .home-actions{flex:none; margin-top:auto; gap:0; padding:14px 16px calc(84px + env(safe-area-inset-bottom)); align-items:center; justify-content:center}
+  /* единственная кнопка главной — круглая, только микрофон, как кнопка записи голоса */
+  .btn-round{width:88px; height:88px; min-width:88px; min-height:88px; flex:none; border-radius:50%; padding:0; margin:0 auto}
+  .hero-actions .btn-ai.btn-round{width:88px; margin-top:0}
+  .btn-round svg.mic-ico{width:38px; height:38px}
+  .hero-actions .btn-ai.btn-round svg.mic-ico{width:38px; height:38px; stroke-width:1.8}
+  .hero-actions .btn-round:active{transform:scale(.96)}
+  /* всплывающее меню круглой кнопки микрофона на главной */
+  .mic-wrap{position:relative; display:flex; flex-direction:column; align-items:center}
+  .mic-menu{position:absolute; bottom:calc(100% + 16px); left:50%; transform:translateX(-50%) translateY(8px); width:252px; max-width:82vw; background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:0 20px 44px rgba(43,43,43,.28); padding:8px; z-index:45; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease, transform .18s ease, visibility .18s}
+  .mic-menu.open{opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0)}
+  .mic-menu::after{content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:9px solid transparent; border-top-color:var(--card)}
+  .mic-menu-item{display:flex; align-items:center; gap:13px; width:100%; padding:14px 12px; border:none; background:none; border-radius:14px; font-family:inherit; font-size:16px; font-weight:700; color:var(--ink); cursor:pointer; text-align:left; min-height:54px}
+  .mic-menu-item:active{background:var(--accent-soft)}
+  .mic-menu-item svg{width:24px; height:24px; stroke:var(--accent); flex:none}
+  .mic-menu-item + .mic-menu-item{border-top:1px solid var(--line)}
+  /* живая диаграмма голоса при диктовке */
+  .voice-viz{display:none; background:var(--card); border-top:1px solid var(--line); padding:12px 14px 2px}
+  .voice-viz.on{display:block}
+  .voice-viz canvas{width:100%; display:block}
+  .voice-viz-row{display:flex; align-items:center; gap:8px; padding:6px 2px 10px}
+  .rec-dot{width:10px; height:10px; border-radius:50%; background:#C0392B; flex:none; animation:recpulse 1.1s ease-in-out infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @media (prefers-reduced-motion: reduce){ .rec-dot{animation:none} .mic-menu{transition:none} }
+  .voice-viz-label{font-size:13.5px; font-weight:700; color:var(--muted)}
+  .viz-stop{margin-left:auto; border:none; background:var(--accent); color:#fff; font-family:inherit; font-weight:800; font-size:13.5px; padding:9px 16px; border-radius:999px; cursor:pointer; min-height:38px; flex:none}
+  .viz-stop:active{transform:scale(.97)}
 </style>
 </head>
 <body class="home-lock">
@@ -249,9 +275,13 @@
           <p class="muted">Я соло-мастер: работаю одна, в уютном кабинете, без потока и спешки. Опыт — 6 лет, работаю на премиум-материалах и подбираю изгиб и объём под ваши глаза. Носка — 4–6 недель.</p>
         </div>
         <div class="hero-actions home-actions">
-          <button class="btn btn-pri btn-big" data-goto="book">Записаться</button>
-          <button class="btn btn-sec btn-big" data-goto="services">Услуги</button>
-          <button class="btn btn-ai btn-big" data-ai-open><svg class="mic-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>ИИ консультант</button>
+          <div class="mic-wrap">
+            <div class="mic-menu" id="mic-menu" role="menu" aria-label="Как обратиться к ИИ консультанту">
+              <button type="button" class="mic-menu-item" id="mic-menu-voice" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg><span>Говорить голосом</span></button>
+              <button type="button" class="mic-menu-item" id="mic-menu-text" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg><span>Написать текстом</span></button>
+            </div>
+            <button class="btn btn-ai btn-round" id="home-mic-btn" aria-label="ИИ консультант" aria-haspopup="menu" aria-expanded="false" title="ИИ консультант"><svg class="mic-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg></button>
+          </div>
         </div>
       </div>
     </section>
@@ -393,13 +423,17 @@
     <div class="chat-head">
       <div>
         <b class="chat-title"><svg class="mic-ico-head" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>ИИ консультант</b>
-        <span>Помощник Анны · отвечает текстом</span>
+        <span>Помощник Анны · отвечает текстом и голосом</span>
       </div>
       <button class="chat-close" id="ai-close" aria-label="Закрыть чат">✕</button>
     </div>
     <div class="chat-msgs" id="ai-msgs"></div>
     <div class="qchips" id="ai-chips"></div>
     <div class="voice-hint" id="ai-voice-hint"></div>
+    <div class="voice-viz" id="ai-viz">
+      <canvas id="ai-viz-canvas"></canvas>
+      <div class="voice-viz-row"><span class="rec-dot"></span><span class="voice-viz-label">Слушаю… говорите</span><button type="button" class="viz-stop" id="ai-viz-stop">Готово</button></div>
+    </div>
     <div class="chat-bar">
       <button class="mic-btn" id="ai-mic" aria-label="Голосовой ввод"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg></button>
       <input type="text" id="ai-input" placeholder="Напишите или нажмите микрофон…" autocomplete="off" />
@@ -1095,7 +1129,7 @@
   }
   var pendingSvc = null;
 
-  function openChat(){
+  function openChat(focusInput){
     chatEl.classList.add("on");
     document.body.style.overflow = "hidden";
     if(!chatOpened){
@@ -1103,23 +1137,154 @@
       botSay("Привет! Я помощник Анны. Могу показать, какие услуги оказывает мастер, и записать вас. Что хотите — наращивание, ламинирование или что-то другое?");
       setChips(DEFAULT_CHIPS);
     }
-    setTimeout(function(){ aiInput.focus(); }, 60);
+    if(focusInput !== false) setTimeout(function(){ aiInput.focus(); }, 60);
   }
   function closeChat(){
     chatEl.classList.remove("on");
     document.body.style.overflow = "";
+    if("speechSynthesis" in window){ try { window.speechSynthesis.cancel(); } catch(e){} }
+    speakNext = false; pendingSpeakText = null;
+    stopViz();
     if(rec && recognizing){ try { rec.stop(); } catch(e){} }
   }
   document.querySelectorAll("[data-ai-open]").forEach(function(b){ b.addEventListener("click", openChat); });
+
+  /* --- Меню круглой кнопки микрофона на главной: голос или текст --- */
+  var homeMicBtn = document.getElementById("home-mic-btn");
+  var micMenu = document.getElementById("mic-menu");
+  function closeMicMenu(){
+    micMenu.classList.remove("open");
+    homeMicBtn.setAttribute("aria-expanded", "false");
+  }
+  homeMicBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    var open = micMenu.classList.toggle("open");
+    homeMicBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", function(e){
+    if(micMenu.classList.contains("open") && !e.target.closest(".mic-wrap")) closeMicMenu();
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && micMenu.classList.contains("open")) closeMicMenu();
+  });
+  document.getElementById("mic-menu-voice").addEventListener("click", function(){
+    closeMicMenu();
+    openChat(false);
+    setTimeout(startVoiceInput, 150);
+  });
+  document.getElementById("mic-menu-text").addEventListener("click", function(){
+    closeMicMenu();
+    openChat(true);
+  });
   document.getElementById("ai-close").addEventListener("click", closeChat);
   document.getElementById("ai-send").addEventListener("click", function(){ handleUser(aiInput.value); });
   aiInput.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); handleUser(aiInput.value); } });
 
-  /* --- Голосовой ввод: Web Speech API, ru-RU --- */
+  /* --- Голосовой ввод: Web Speech API, ru-RU + живая диаграмма голоса --- */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   var rec = null, recognizing = false;
   var micBtn = document.getElementById("ai-mic");
   function setHint(t){ hintEl.textContent = t || ""; hintEl.classList.toggle("on", !!t); }
+
+  /* --- Озвучка ответов: speechSynthesis, русский голос --- */
+  var speakNext = false, pendingSpeakText = null;
+  function speakText(text){
+    if(!("speechSynthesis" in window) || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "ru-RU";
+      u.rate = 1; u.pitch = 1;
+      var voices = window.speechSynthesis.getVoices();
+      for(var i = 0; i < voices.length; i++){
+        if(voices[i].lang && voices[i].lang.toLowerCase().indexOf("ru") === 0){ u.voice = voices[i]; break; }
+      }
+      window.speechSynthesis.speak(u);
+    } catch(e){ /* синтез недоступен — ответ остаётся текстом в чате */ }
+  }
+  if("speechSynthesis" in window){
+    try {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = function(){ window.speechSynthesis.getVoices(); };
+    } catch(e){}
+  }
+  function queueSpeak(html){
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    var plain = (tmp.textContent || "").replace(/\s+/g, " ").trim();
+    if(!plain) return;
+    if(recognizing){ pendingSpeakText = plain; }
+    else speakText(plain);
+  }
+  function flushSpeak(){
+    if(pendingSpeakText){ var p = pendingSpeakText; pendingSpeakText = null; speakText(p); }
+  }
+  var _botSayOrig = botSay;
+  botSay = function(t){
+    _botSayOrig(t);
+    if(speakNext){ speakNext = false; queueSpeak(t); }
+  };
+
+  /* --- Живая диаграмма голоса: микрофон + AnalyserNode в реальном времени --- */
+  var vizPanel = document.getElementById("ai-viz");
+  var vizCanvas = document.getElementById("ai-viz-canvas");
+  var vizStream = null, vizCtx = null, vizAnalyser = null, vizRAF = null, vizData = null;
+  function drawViz(){
+    if(!vizAnalyser || !vizData) return;
+    var ctx = vizCanvas.getContext("2d");
+    var W = vizCanvas.width, H = vizCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+    vizAnalyser.getByteFrequencyData(vizData);
+    var bars = 28, gap = Math.max(2, W * 0.008), bw = (W - gap * (bars + 1)) / bars;
+    var accent = "#D97B8F";
+    try {
+      var cs = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      if(cs) accent = cs;
+    } catch(e){}
+    ctx.fillStyle = accent;
+    for(var i = 0; i < bars; i++){
+      var idx = Math.floor(i / bars * vizData.length * 0.72);
+      var v = vizData[idx] / 255;
+      var h = Math.max(H * 0.08, v * H * 0.92);
+      var x = gap + i * (bw + gap), y = (H - h) / 2;
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(x, y, bw, h, bw / 2); else ctx.rect(x, y, bw, h);
+      ctx.fill();
+    }
+    vizRAF = requestAnimationFrame(drawViz);
+  }
+  function startViz(){
+    vizPanel.classList.add("on");
+    var dpr = window.devicePixelRatio || 1;
+    var w = vizPanel.clientWidth || 320;
+    vizCanvas.width = Math.max(200, w - 28) * dpr;
+    vizCanvas.height = 64 * dpr;
+    vizCanvas.style.height = "64px";
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return;
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      if(!recognizing){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      vizStream = stream;
+      vizCtx = new AC();
+      if(vizCtx.resume) vizCtx.resume();
+      var src = vizCtx.createMediaStreamSource(stream);
+      vizAnalyser = vizCtx.createAnalyser();
+      vizAnalyser.fftSize = 64;
+      vizAnalyser.smoothingTimeConstant = 0.75;
+      vizData = new Uint8Array(vizAnalyser.frequencyBinCount);
+      src.connect(vizAnalyser);
+      drawViz();
+    }).catch(function(){ /* доступ к микрофону для диаграммы не дали — диктовка продолжается без неё */ });
+  }
+  function stopViz(){
+    vizPanel.classList.remove("on");
+    if(vizRAF){ cancelAnimationFrame(vizRAF); vizRAF = null; }
+    if(vizStream){ vizStream.getTracks().forEach(function(t){ t.stop(); }); vizStream = null; }
+    if(vizCtx){ try { vizCtx.close(); } catch(e){} vizCtx = null; }
+    vizAnalyser = null; vizData = null;
+  }
+
   if(SR){
     rec = new SR();
     rec.lang = "ru-RU";
@@ -1127,29 +1292,43 @@
     rec.maxAlternatives = 1;
     rec.onresult = function(e){
       var tr = e.results[0][0].transcript;
-      micBtn.classList.remove("rec"); recognizing = false; setHint("");
+      micBtn.classList.remove("rec"); setHint("");
+      speakNext = true;
       handleUser(tr);
+      setTimeout(flushSpeak, 900);
     };
     rec.onerror = function(){
       micBtn.classList.remove("rec"); recognizing = false;
-      setHint("");
+      speakNext = false; pendingSpeakText = null;
+      stopViz(); setHint("");
       botSay("Не расслышала, повторите, пожалуйста, или напишите текстом.");
     };
-    rec.onend = function(){ micBtn.classList.remove("rec"); recognizing = false; setHint(""); };
+    rec.onend = function(){
+      micBtn.classList.remove("rec"); recognizing = false; setHint("");
+      stopViz();
+      flushSpeak();
+    };
   }
-  micBtn.addEventListener("click", function(){
+  function startVoiceInput(){
     if(!rec){
       setHint("Голосовой ввод недоступен в этом браузере — напишите текстом.");
       botSay("Голосовой ввод недоступен в этом браузере — напишите текстом, я всё пойму.");
       return;
     }
     if(recognizing){ try { rec.stop(); } catch(e){} return; }
+    if("speechSynthesis" in window){ try { window.speechSynthesis.cancel(); } catch(e){} }
+    pendingSpeakText = null;
     try {
       rec.start();
       recognizing = true;
       micBtn.classList.add("rec");
       setHint("Говорите… я слушаю");
+      startViz();
     } catch(e){ /* уже запущено */ }
+  }
+  micBtn.addEventListener("click", startVoiceInput);
+  document.getElementById("ai-viz-stop").addEventListener("click", function(){
+    if(rec && recognizing){ try { rec.stop(); } catch(e){} }
   });
 
   /* --- Плавающая кнопка ИИ: не перекрывает шапку главной --- */
